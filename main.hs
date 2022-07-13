@@ -1,17 +1,15 @@
 -- Food --
 
-data Apple = Apple
-data Mango = Mango
+data Food = Apple | Mango
 
--- Storages --
+render :: Food -> String
+render Apple = "🍎"
+render Mango = "🥭"
 
 -- Show instances --
 
-instance Show Apple where
-    show Apple = "🍎"
-    
-instance Show Mango where
-    show Mango = "🥭"
+instance Show Food where
+    show a = render a
 
 -- IO --
 
