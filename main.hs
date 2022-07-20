@@ -2,16 +2,18 @@
 
 data State = Normal | Bad | Fried
 
-data Food = NoFood | Apple State | Mango State
+data Food = NoFood | Apple State | Mango State | Chicken State
 
 renderFood :: Food -> String
 renderFood (Apple s) = "🍎" ++ ":" ++ "яблоко" ++ ":" ++ show s
 renderFood (Mango s) = "🥭" ++ ":" ++ "манго" ++ ":" ++ show s
+renderFood (Chicken s) = "🍗" ++ ":" ++ "курица" ++ ":" ++ show s
 renderFood NoFood = "🚫"
 
 matchFood :: Food -> Food -> Bool
 matchFood (Apple _) (Apple _) = True
-matchFood (Apple _) _ = False
+matchFood (Mango _) (Mango _) = True
+matchFood (Chicken _) (Chicken _) = True
 matchFood _ _ = False
 
 -- Storages --
@@ -56,6 +58,8 @@ data Stove = Stove
 
 cookOnStove :: Stove -> Food -> Food
 cookOnStove _ (Apple s) = Apple Fried
+cookOnStove _ (Mango s) = Mango Fried
+cookOnStove _ (Chicken s) = Chicken Fried
 
 -- Show instances --
 
@@ -74,13 +78,14 @@ instance Show State where
 
 main :: IO ()
 main =  do
-    print(fried_apple)
+    print(chick)
     print(fridge)
+    print(cooked_chick)
+    print(updated_fridge)
         where
-        apple_1 = Apple Normal
-        apple_2 = Apple Normal
-        mango_1 = Mango Normal
-        fridge = putInFreezer (putInStorage (createFridge 20 10) [apple_1, apple_2, mango_1]) [mango_1, mango_1]
-        got_apple = findInStorage fridge apple_1
+        chick = Chicken Normal
+        fridge = putInFreezer (createFridge 20 10) [chick]
+        got_chick = findInStorage fridge chick
         stove = Stove
-        fried_apple = cookOnStove stove got_apple 
+        cooked_chick = cookOnStove stove chick
+        updated_fridge = putInStorage fridge [cooked_chick]
