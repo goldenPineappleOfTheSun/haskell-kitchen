@@ -5,8 +5,8 @@ data State = Normal | Bad | Fried
 data Food = NoFood | Apple State | Mango State
 
 renderFood :: Food -> String
-renderFood (Apple s) = "🍎"
-renderFood (Mango s) = "🥭"
+renderFood (Apple s) = "🍎" ++ ":" ++ "яблоко" ++ ":" ++ show s
+renderFood (Mango s) = "🥭" ++ ":" ++ "манго" ++ ":" ++ show s
 renderFood NoFood = "🚫"
 
 matchFood :: Food -> Food -> Bool
@@ -59,6 +59,11 @@ instance Show Food where
     
 instance Show Storage where
     show a = renderStorage a
+    
+instance Show State where
+    show Normal = "хороший"
+    show Bad = "плохой"
+    show Fried = "жаренный"
 
 -- IO --
 
