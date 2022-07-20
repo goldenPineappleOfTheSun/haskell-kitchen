@@ -28,15 +28,13 @@ createShelve :: Int -> Storage
 createShelve x = Shelve {capacity = x, slots = []}
 
 putInStorage :: Storage -> [Food] -> Storage
-putInStorage fridge@(Fridge{capacity=c, slots=s, freezer = fz}) [] = fridge
-putInStorage fridge@(Fridge{capacity=c, slots=s, freezer = fz}) (x:xs) = if (length s < c) then putInStorage (Fridge {capacity = c, slots = x:s, freezer = fz}) xs else fridge 
-putInStorage freezer@(Freezer{capacity=c, slots=s}) [] = freezer
-putInStorage freezer@(Freezer{capacity=c, slots=s}) (x:xs) = if (length s < c) then putInStorage (Freezer {capacity = c, slots = x:s}) xs else freezer 
-putInStorage shelve@(Shelve{capacity=c, slots=s}) [] = shelve
-putInStorage shelve@(Shelve{capacity=c, slots=s}) (x:xs) = if (length s < c) then putInStorage (Shelve {capacity = c, slots = x:s}) xs else shelve
+putInStorage storage [] = storage
+putInStorage fridge@(Fridge{capacity=c, slots=s}) (x:xs) = if (length s < c) then putInStorage (fridge {slots = x:s}) xs else fridge 
+putInStorage freezer@(Freezer{capacity=c, slots=s}) (x:xs) = if (length s < c) then putInStorage (freezer {slots = x:s}) xs else freezer 
+putInStorage shelve@(Shelve{capacity=c, slots=s}) (x:xs) = if (length s < c) then putInStorage (shelve {slots = x:s}) xs else shelve
 
 putInFreezer :: Storage -> [Food] -> Storage
-putInFreezer fridge@(Fridge{capacity=c, slots=s, freezer = fz}) food = (Fridge {capacity = c, slots = s, freezer = putInStorage fz food})
+putInFreezer fridge@(Fridge{freezer = fz}) food = (fridge {freezer = putInStorage fz food})
 
 _findInStorage :: [Food] -> Food -> Food
 _findInStorage [] food = NoFood
@@ -51,6 +49,13 @@ renderStorage :: Storage -> String
 renderStorage (Fridge c s freezer) = "❄️" ++ show s ++ "+" ++ show freezer
 renderStorage (Freezer c s) = "☃️️" ++ show s
 renderStorage (Shelve c s) = "🧳" ++ show s
+
+-- Stove --
+
+data Stove = Stove
+
+cookOnStove :: Stove -> Food -> Food
+cookOnStove _ (Apple s) = Apple Fried
 
 -- Show instances --
 
@@ -69,10 +74,7 @@ instance Show State where
 
 main :: IO ()
 main =  do
-    print(got_apple)
-    print(apple_1)
-    print(apple_2)
-    print(mango_1)
+    print(fried_apple)
     print(fridge)
         where
         apple_1 = Apple Normal
@@ -80,3 +82,5 @@ main =  do
         mango_1 = Mango Normal
         fridge = putInFreezer (putInStorage (createFridge 20 10) [apple_1, apple_2, mango_1]) [mango_1, mango_1]
         got_apple = findInStorage fridge apple_1
+        stove = Stove
+        fried_apple = cookOnStove stove got_apple 
