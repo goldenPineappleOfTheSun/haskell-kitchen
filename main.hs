@@ -16,14 +16,14 @@ matchFood _ _ = False
 
 -- Storages --
 
-data Storage = Fridge {capacity :: Integer, slots :: [Food]}
+data Storage = Fridge {capacity :: Int, slots :: [Food]}
 
-createFridge :: Integer -> Storage
+createFridge :: Int -> Storage
 createFridge x = Fridge {capacity = x, slots = []}
 
 putInStorage :: Storage -> [Food] -> Storage
-putInStorage Fridge{capacity=c, slots=s} [] = Fridge {capacity = c, slots = s}
-putInStorage Fridge{capacity=c, slots=s} (x:xs) = putInStorage (Fridge {capacity = c, slots = x:s}) xs
+putInStorage fridge@(Fridge{capacity=c, slots=s}) [] = fridge
+putInStorage fridge@(Fridge{capacity=c, slots=s}) (x:xs) = if (length s < c) then putInStorage (Fridge {capacity = c, slots = x:s}) xs else fridge 
 
 _findInStorage :: [Food] -> Food -> Food
 _findInStorage [] food = NoFood
@@ -56,5 +56,5 @@ main =  do
         apple_1 = Apple Normal
         apple_2 = Apple Normal
         mango_1 = Mango Normal
-        fridge = putInStorage (createFridge 20) [apple_1, apple_2, mango_1]
+        fridge = putInStorage (createFridge 2) [apple_1, apple_2, mango_1]
         got_apple = findInStorage fridge apple_1
