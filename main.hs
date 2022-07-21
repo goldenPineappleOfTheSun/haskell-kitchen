@@ -38,14 +38,27 @@ putInStorage shelve@(Shelve{capacity=c, slots=s}) (x:xs) = if (length s < c) the
 putInFreezer :: Storage -> [Food] -> Storage
 putInFreezer fridge@(Fridge{freezer = fz}) food = (fridge {freezer = putInStorage fz food})
 
+_removeFromStorage :: [Food] -> Food -> [Food]
+_removeFromStorage [] f = []
+_removeFromStorage (x:xs) f = if x == f then xs else _removeFromStorage xs f
+
+removeFromStorage :: Storage -> Food -> Storage
+removeFromStorage fridge@(Fridge{slots=s}) f = fridge{slots=_removeFromStorage s f}
+removeFromStorage freezer@(Freezer{slots=s}) f = freezer{slots=[]}
+removeFromStorage shelve@(Shelve{slots=s}) f = shelve{slots=_removeFromStorage s f}
+
 _findInStorage :: [Food] -> Food -> Food
 _findInStorage [] food = NoFood
 _findInStorage (x:xs) food = if (matchFood x food) then x else (_findInStorage xs food)
 
-findInStorage :: Storage -> Food -> Food
-findInStorage Fridge{slots=s} f = _findInStorage s f
-findInStorage Freezer{slots=s} f = _findInStorage s f
-findInStorage Shelve{slots=s} f = _findInStorage s f
+findInStorage :: Storage -> Food -> (Storage, Food)
+findInStorage fridge@(Fridge{slots=s, freezer=fz@(Freezer{slots=fs})}) f = 
+    if (snd intermediateResult) == NoFood then intermediateResult else (fridge{freezer=removeFromStorage fz f}, _findInStorage fs f)
+    where
+        intermediateResult = (removeFromStorage fridge f, _findInStorage s f)
+        
+findInStorage freezer@(Freezer{slots=s}) f = (removeFromStorage freezer f, _findInStorage s f)
+findInStorage shelve@(Shelve{slots=s}) f = (removeFromStorage shelve f, _findInStorage s f)
 
 renderStorage :: Storage -> String
 renderStorage (Fridge c s freezer) = "❄️" ++ show s ++ "+" ++ show freezer
@@ -73,19 +86,34 @@ instance Show State where
     show Normal = "хороший"
     show Bad = "плохой"
     show Fried = "жаренный"
+    
+-- Eq instances --
+
+instance Eq State where
+    Normal == Normal = True
+    Bad == Bad = True
+    Fried == Fried = True
+    _ == _ = False
+
+instance Eq Food where
+    (Apple s1) == (Apple s2) = s1 == s2
+    (Mango s1) == (Mango s2) = s1 == s2
+    (Chicken s1) == (Chicken s2) = s1 == s2
+    _ == _ = False
 
 -- IO --
 
 main :: IO ()
 main =  do
+    print(findInStorage (putInFreezer (createFridge 20 10) [chick]) chick)
     print(chick)
     print(fridge)
     print(cooked_chick)
-    print(updated_fridge)
-        where
+    print(fridge_upd_2)
+    where
         chick = Chicken Normal
         fridge = putInFreezer (createFridge 20 10) [chick]
-        got_chick = findInStorage fridge chick
+        (fridge_upd_1, got_chick) = findInStorage fridge chick
         stove = Stove
         cooked_chick = cookOnStove stove chick
-        updated_fridge = putInStorage fridge [cooked_chick]
+        fridge_upd_2 = putInStorage fridge_upd_1 [cooked_chick]
