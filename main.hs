@@ -1,6 +1,6 @@
 -- Food --
 
-data State = Normal | Bad | Fried
+data State = Normal | Bad | Fried | Boiled | Steamed | UnknownFoodState
 
 data Food = NoFood | Apple State | Mango State | Chicken State
 
@@ -69,10 +69,20 @@ renderStorage (Shelve c s) = "🧳" ++ show s
 
 data Stove = Stove
 
-cookOnStove :: Stove -> Food -> Food
-cookOnStove _ (Apple s) = Apple Fried
-cookOnStove _ (Mango s) = Mango Fried
-cookOnStove _ (Chicken s) = Chicken Fried
+fryOnStove :: Stove -> Food -> Food
+fryOnStove _ (Apple s) = Apple Fried
+fryOnStove _ (Mango s) = Mango Fried
+fryOnStove _ (Chicken s) = Chicken Fried
+
+boilOnStove :: Stove -> Food -> Food
+boilOnStove _ (Apple s) = Apple Boiled
+boilOnStove _ (Mango s) = Mango Boiled
+boilOnStove _ (Chicken s) = Chicken Boiled
+
+steamOnStove :: Stove -> Food -> Food
+steamOnStove _ (Apple s) = Apple Steamed
+steamOnStove _ (Mango s) = Mango Steamed
+steamOnStove _ (Chicken s) = Chicken Steamed
 
 -- Show instances --
 
@@ -86,6 +96,9 @@ instance Show State where
     show Normal = "хороший"
     show Bad = "плохой"
     show Fried = "жаренный"
+    show Boiled = "варёный"
+    show Steamed = "тушёный"
+    show _ = "неизвестное состояние"
     
 -- Eq instances --
 
@@ -115,5 +128,5 @@ main =  do
         fridge = putInFreezer (createFridge 20 10) [chick]
         (fridge_upd_1, got_chick) = findInStorage fridge chick
         stove = Stove
-        cooked_chick = cookOnStove stove chick
+        cooked_chick = boilOnStove stove chick
         fridge_upd_2 = putInStorage fridge_upd_1 [cooked_chick]
