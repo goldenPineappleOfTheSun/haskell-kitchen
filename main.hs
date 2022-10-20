@@ -2,11 +2,12 @@
 
 data State = Normal | Bad | Fried | Boiled | Steamed | UnknownFoodState
 
-data Food = NoFood | Apple State | Mango State | Chicken State | Egg State | FriedEgg State
+data Food = NoFood | Apple State | Mango State | Bread State | Chicken State | Egg State | FriedEgg State
 
 renderFood :: Food -> String
 renderFood (Apple s) = "🍎" ++ ":" ++ "яблоко" ++ ":" ++ show s
 renderFood (Mango s) = "🥭" ++ ":" ++ "манго" ++ ":" ++ show s
+renderFood (Bread s) = "🍞" ++ ":" ++ "хлеб" ++ ":" ++ show s
 renderFood (Chicken s) = "🍗" ++ ":" ++ "курица" ++ ":" ++ show s
 renderFood (Egg s) = "🥚" ++ ":" ++ "яйцо" ++ ":" ++ show s
 renderFood (FriedEgg s) = "🍳" ++ ":" ++ "яишница" ++ ":" ++ show s
@@ -15,6 +16,7 @@ renderFood NoFood = "🚫"
 matchFood :: Food -> Food -> Bool
 matchFood (Apple _) (Apple _) = True
 matchFood (Mango _) (Mango _) = True
+matchFood (Bread _) (Bread _) = True
 matchFood (Chicken _) (Chicken _) = True
 matchFood (Egg _) (Egg _) = True
 matchFood (FriedEgg _) (FriedEgg _) = True
@@ -77,12 +79,14 @@ fryOnStove :: Stove -> Food -> Food
 fryOnStove _ (Apple s) = Apple Fried
 fryOnStove _ (Mango s) = Mango Fried
 fryOnStove _ (Chicken s) = Chicken Fried
+fryOnStove _ (Bread s) = Bread Fried
 fryOnStove _ (Egg s) = FriedEgg Normal
 fryOnStove _ (FriedEgg s) = FriedEgg Normal
 
 boilOnStove :: Stove -> Food -> Food
 boilOnStove _ (Apple s) = Apple Boiled
 boilOnStove _ (Mango s) = Mango Boiled
+boilOnStove _ (Bread s) = Bread Bad
 boilOnStove _ (Chicken s) = Chicken Boiled
 boilOnStove _ (Egg s) = FriedEgg Boiled
 boilOnStove _ (FriedEgg s) = FriedEgg Normal
@@ -90,6 +94,7 @@ boilOnStove _ (FriedEgg s) = FriedEgg Normal
 steamOnStove :: Stove -> Food -> Food
 steamOnStove _ (Apple s) = Apple Steamed
 steamOnStove _ (Mango s) = Mango Steamed
+steamOnStove _ (Bread s) = Bread Bad
 steamOnStove _ (Chicken s) = Chicken Steamed
 steamOnStove _ (Egg s) = Egg Steamed
 steamOnStove _ (FriedEgg s) = FriedEgg Normal
@@ -121,7 +126,10 @@ instance Eq State where
 instance Eq Food where
     (Apple s1) == (Apple s2) = s1 == s2
     (Mango s1) == (Mango s2) = s1 == s2
+    (Bread s1) == (Bread s2) = s1 == s2
     (Chicken s1) == (Chicken s2) = s1 == s2
+    (Egg s1) == (Egg s2) = s1 == s2
+    (FriedEgg s1) == (FriedEgg s2) = s1 == s2
     _ == _ = False
 
 -- IO --
@@ -134,6 +142,7 @@ main =  do
     print(cooked_chick)
     print(fridge_upd_2)
     print(cooked_egg)
+    print(bread)
     where
         chick = Chicken Normal
         fridge = putInFreezer (createFridge 20 10) [chick]
@@ -143,3 +152,4 @@ main =  do
         fridge_upd_2 = putInStorage fridge_upd_1 [cooked_chick]
         egg = Egg Normal
         cooked_egg = fryOnStove stove egg
+        bread = Bread Normal
