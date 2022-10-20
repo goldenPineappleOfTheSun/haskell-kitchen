@@ -2,18 +2,22 @@
 
 data State = Normal | Bad | Fried | Boiled | Steamed | UnknownFoodState
 
-data Food = NoFood | Apple State | Mango State | Chicken State
+data Food = NoFood | Apple State | Mango State | Chicken State | Egg State | FriedEgg State
 
 renderFood :: Food -> String
 renderFood (Apple s) = "🍎" ++ ":" ++ "яблоко" ++ ":" ++ show s
 renderFood (Mango s) = "🥭" ++ ":" ++ "манго" ++ ":" ++ show s
 renderFood (Chicken s) = "🍗" ++ ":" ++ "курица" ++ ":" ++ show s
+renderFood (Egg s) = "🥚" ++ ":" ++ "яйцо" ++ ":" ++ show s
+renderFood (FriedEgg s) = "🍳" ++ ":" ++ "яишница" ++ ":" ++ show s
 renderFood NoFood = "🚫"
 
 matchFood :: Food -> Food -> Bool
 matchFood (Apple _) (Apple _) = True
 matchFood (Mango _) (Mango _) = True
 matchFood (Chicken _) (Chicken _) = True
+matchFood (Egg _) (Egg _) = True
+matchFood (FriedEgg _) (FriedEgg _) = True
 matchFood _ _ = False
 
 -- Storages --
@@ -73,16 +77,22 @@ fryOnStove :: Stove -> Food -> Food
 fryOnStove _ (Apple s) = Apple Fried
 fryOnStove _ (Mango s) = Mango Fried
 fryOnStove _ (Chicken s) = Chicken Fried
+fryOnStove _ (Egg s) = FriedEgg Normal
+fryOnStove _ (FriedEgg s) = FriedEgg Normal
 
 boilOnStove :: Stove -> Food -> Food
 boilOnStove _ (Apple s) = Apple Boiled
 boilOnStove _ (Mango s) = Mango Boiled
 boilOnStove _ (Chicken s) = Chicken Boiled
+boilOnStove _ (Egg s) = FriedEgg Boiled
+boilOnStove _ (FriedEgg s) = FriedEgg Normal
 
 steamOnStove :: Stove -> Food -> Food
 steamOnStove _ (Apple s) = Apple Steamed
 steamOnStove _ (Mango s) = Mango Steamed
 steamOnStove _ (Chicken s) = Chicken Steamed
+steamOnStove _ (Egg s) = Egg Steamed
+steamOnStove _ (FriedEgg s) = FriedEgg Normal
 
 -- Show instances --
 
@@ -123,6 +133,7 @@ main =  do
     print(fridge)
     print(cooked_chick)
     print(fridge_upd_2)
+    print(cooked_egg)
     where
         chick = Chicken Normal
         fridge = putInFreezer (createFridge 20 10) [chick]
@@ -130,3 +141,5 @@ main =  do
         stove = Stove
         cooked_chick = boilOnStove stove chick
         fridge_upd_2 = putInStorage fridge_upd_1 [cooked_chick]
+        egg = Egg Normal
+        cooked_egg = fryOnStove stove egg
