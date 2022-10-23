@@ -1,25 +1,26 @@
 -- Food --
 
-data State = Normal | Bad | Fried | Boiled | Steamed | UnknownFoodState
+data FoodKind = Apple | Mango | Bread | Chicken | Egg | Omelete | Sandwich
 
-data Food = NoFood | Apple State | Mango State | Bread State | Chicken State | Egg State | FriedEgg State
+data State = Normal | Bad | Fried | Boiled | Steamed
+
+-- kind, state, icon
+data Food = NoFood | Food { kind :: FoodKind, state :: State, icon :: String}
+createFood :: FoodKind -> Food
+createFood Apple state = Food {kind=Apple, state=state, icon="🍎"}
+createFood Mango state = Food {kind=Mango, state=state, icon="🥭"}
+createFood Bread state = Food {kind=Bread, state=state, icon="🍞"}
+createFood Chicken state = Food {kind=Chicken, state=state, icon="🍗"}
+createFood Egg state = Food {kind=Egg, state=state, icon="🥚"}
+createFood Omelete state = Food {kind=Omelete, state=state, icon="🍳"}
+createFood Sandwich state = Food {kind=Sandwich, state=state, icon="🥪"}
 
 renderFood :: Food -> String
-renderFood (Apple s) = "🍎" ++ ":" ++ "яблоко" ++ ":" ++ show s
-renderFood (Mango s) = "🥭" ++ ":" ++ "манго" ++ ":" ++ show s
-renderFood (Bread s) = "🍞" ++ ":" ++ "хлеб" ++ ":" ++ show s
-renderFood (Chicken s) = "🍗" ++ ":" ++ "курица" ++ ":" ++ show s
-renderFood (Egg s) = "🥚" ++ ":" ++ "яйцо" ++ ":" ++ show s
-renderFood (FriedEgg s) = "🍳" ++ ":" ++ "яишница" ++ ":" ++ show s
+renderFood (Food kind state icon) = icon ++ ":" ++ show kind ++ ":" ++ show state
 renderFood NoFood = "🚫"
 
 matchFood :: Food -> Food -> Bool
-matchFood (Apple _) (Apple _) = True
-matchFood (Mango _) (Mango _) = True
-matchFood (Bread _) (Bread _) = True
-matchFood (Chicken _) (Chicken _) = True
-matchFood (Egg _) (Egg _) = True
-matchFood (FriedEgg _) (FriedEgg _) = True
+matchFood (Food kind_a _ _) (Food kind_b _ _) = kind_a == kind_b
 matchFood _ _ = False
 
 -- Storages --
@@ -76,28 +77,17 @@ renderStorage (Shelve c s) = "🧳" ++ show s
 data Stove = Stove
 
 fryOnStove :: Stove -> Food -> Food
-fryOnStove _ (Apple s) = Apple Fried
-fryOnStove _ (Mango s) = Mango Fried
-fryOnStove _ (Chicken s) = Chicken Fried
-fryOnStove _ (Bread s) = Bread Fried
-fryOnStove _ (Egg s) = FriedEgg Normal
-fryOnStove _ (FriedEgg s) = FriedEgg Normal
+fryOnStove _ (Food Chicken state icon) = (Food Chicken Fried icon)
+fryOnStove _ (Food Bread state icon) = (Food Bread Fried icon)
+fryOnStove _ (Food kind state icon) = (Food kind Bad icon)
 
 boilOnStove :: Stove -> Food -> Food
-boilOnStove _ (Apple s) = Apple Boiled
-boilOnStove _ (Mango s) = Mango Boiled
-boilOnStove _ (Bread s) = Bread Bad
-boilOnStove _ (Chicken s) = Chicken Boiled
-boilOnStove _ (Egg s) = FriedEgg Boiled
-boilOnStove _ (FriedEgg s) = FriedEgg Normal
+boilOnStove _ (Food Chicken state icon) = (Food Chicken Boiled icon)
+boilOnStove _ (Food kind state icon) = (Food kind Bad icon)
 
 steamOnStove :: Stove -> Food -> Food
-steamOnStove _ (Apple s) = Apple Steamed
-steamOnStove _ (Mango s) = Mango Steamed
-steamOnStove _ (Bread s) = Bread Bad
-steamOnStove _ (Chicken s) = Chicken Steamed
-steamOnStove _ (Egg s) = Egg Steamed
-steamOnStove _ (FriedEgg s) = FriedEgg Normal
+steamOnStove _ (Food Chicken state icon) = (Food Chicken Steamed icon)
+steamOnStove _ (Food kind state icon) = (Food kind Bad icon)
 
 -- Show instances --
 
@@ -107,15 +97,33 @@ instance Show Food where
 instance Show Storage where
     show a = renderStorage a
     
+instance Show FoodKind where
+    show Apple = "яблоко"
+    show Mango = "манго"
+    show Bread = "хлеб"
+    show Chicken = "кура"
+    show Egg = "яйцо"
+    show Omelete = "яишница"
+    show Sandwich = "бутерброд"
+    
 instance Show State where
     show Normal = "хороший"
     show Bad = "плохой"
     show Fried = "жаренный"
     show Boiled = "варёный"
     show Steamed = "тушёный"
-    show _ = "неизвестное состояние"
     
 -- Eq instances --
+
+instance Eq FoodKind where
+    Apple == Apple = True
+    Mango == Mango = True
+    Bread == Bread = True
+    Chicken == Chicken = True
+    Egg == Egg = True
+    Omelete == Omelete = True
+    Sandwich == Sandwich = True
+    _ == _ = False
 
 instance Eq State where
     Normal == Normal = True
@@ -124,13 +132,27 @@ instance Eq State where
     _ == _ = False
 
 instance Eq Food where
-    (Apple s1) == (Apple s2) = s1 == s2
-    (Mango s1) == (Mango s2) = s1 == s2
-    (Bread s1) == (Bread s2) = s1 == s2
-    (Chicken s1) == (Chicken s2) = s1 == s2
-    (Egg s1) == (Egg s2) = s1 == s2
-    (FriedEgg s1) == (FriedEgg s2) = s1 == s2
+    (Food kind_a state_a _) == (Food kind_b state_b _) = kind_a == kind_b && state_a == state_b
     _ == _ = False
+
+-- Receipts --
+
+data Receipt = Receipt String [Food] FoodKind
+
+findFoodInReceipt :: Food -> [Food] -> Bool
+findFoodInReceipt food [] = False
+findFoodInReceipt food (x:xs) = if x == food then True else findFoodInReceipt food xs  
+
+checkReceipt :: [Food] -> Receipt -> Bool
+checkReceipt [] receipt = False
+checkReceipt (x:xs) receipt@(Receipt name arr result) = if findFoodInReceipt x arr then True else checkReceipt xs receipt
+
+cookReceipt :: Receipt -> Food
+cookReceipt (Receipt name foods result) = (createFood result)
+
+mix :: [Food] -> [Receipt] -> Food
+mix [] _ = NoFood
+mix foods (x:xs) = if checkReceipt foods x then cookReceipt x else mix foods xs
 
 -- IO --
 
@@ -143,13 +165,16 @@ main =  do
     print(fridge_upd_2)
     print(cooked_egg)
     print(bread)
+    print(sandwich)
     where
-        chick = Chicken Normal
+        book_of_receipts = [Receipt "бутерброд" [(createFood Bread), (createFood Chicken)] Sandwich]
+        chick = createFood Chicken
         fridge = putInFreezer (createFridge 20 10) [chick]
         (fridge_upd_1, got_chick) = findInStorage fridge chick
         stove = Stove
-        cooked_chick = boilOnStove stove chick
+        cooked_chick = fryOnStove stove chick
         fridge_upd_2 = putInStorage fridge_upd_1 [cooked_chick]
-        egg = Egg Normal
+        egg = createFood Egg
         cooked_egg = fryOnStove stove egg
-        bread = Bread Normal
+        bread = createFood Bread
+        sandwich = mix [bread, cooked_chick] book_of_receipts
